@@ -2,7 +2,7 @@ const {promisify} = require('util');
 const jwt = require('jsonwebtoken');
 const createError = require('http-errors');
 const crypto = require('crypto');
-const TokenBlacklist = require('../../server/db/mongo/models/TokenBlackList');
+const TokenBlacklist = require('../db/mongo/models/TokenBlackList');
 // const postgresQuries = require(`${__dirname}/../db/postGres/posgresQueries`);
 // const pool = require(`${__dirname}/../db/postGres/dbPostgres`);
 
