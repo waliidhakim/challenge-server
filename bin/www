@@ -64,13 +64,10 @@ server.on('listening', onListening)
 
 if (process.env.FORCE_ENV) {
   process.env.ENV = process.env.FORCE_ENV.trim();
+  process.env.FRONT_APP_URL = process.env.FRONT_APP_URL_PROD.trim();
 }
 
-
-if (!process.env.FORCE_ENV) {
-  console.log("Front App running on port 8080");
-  process.env.FRONT_APP_URL = "http://localhost:8080".trim();
-}
+console.log("FRONT APP URL :", process.env.FRONT_APP_URL);
 
 
 function normalizePort(val) {
