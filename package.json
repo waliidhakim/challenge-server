@@ -6,7 +6,8 @@
   "scripts": {
     "test": "npx jest",
     "dev": "nodemon ./bin/www",
-    "start" : "nodemon ./bin/www"
+    "start" : "nodemon ./bin/www",
+    "start:prod": "SET FORCE_ENV=prod & nodemon ./bin/www"
   },
   "author": "Whale 🐳",
   "license": "ISC",

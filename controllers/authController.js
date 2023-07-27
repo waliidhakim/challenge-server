@@ -70,7 +70,7 @@ exports.signup = async(req,res,next)=>{
         
     }
     catch(error){
-        //console.log("Error Type : ", error.name)
+        console.log("Error Type : ", error)
         if (error.name === 'ValidationError') {
             // Erreur de validation Mongoose
             const validationErrors = {};
