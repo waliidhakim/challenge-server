@@ -2,7 +2,7 @@ const {promisify} = require('util');
 const jwt = require('jsonwebtoken');
 const createError = require('http-errors');
 const crypto = require('crypto');
-const TokenBlacklist = require('../db/mongo/models/TokenBlackList');
+const TokenBlacklist = require('../../server/db/mongo/models/TokenBlackList');
 // const postgresQuries = require(`${__dirname}/../db/postGres/posgresQueries`);
 // const pool = require(`${__dirname}/../db/postGres/dbPostgres`);
 
@@ -70,7 +70,7 @@ exports.signup = async(req,res,next)=>{
         
     }
     catch(error){
-        console.log("Error Type : ", error)
+        //console.log("Error Type : ", error.name)
         if (error.name === 'ValidationError') {
             // Erreur de validation Mongoose
             const validationErrors = {};
@@ -246,7 +246,7 @@ exports.forgotPassword = async (req,res,next)=>{
             //     message
             // })
 
-            const resetURL = `${process.env.FRONT_APP_URL}/resetPassword/${resetToken}`;
+            const resetURL = `${req.protocol}://${req.get('host')}/api/v1/users/resetPassword/${resetToken}`;
             await new Email(user,resetURL).sendPasswordReset();
         
             res.status(200).json({

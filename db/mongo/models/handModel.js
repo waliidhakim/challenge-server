@@ -21,6 +21,10 @@ let handSchema = new Schema({
     turn: {
         type: Boolean,
         default: false
+    },
+    inactive: {
+        type: Number,
+        default: 0
     }
 },
 {

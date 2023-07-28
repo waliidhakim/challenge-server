@@ -1,0 +1,18 @@
+extends baseEmail
+
+block content
+  p Hi #{firstName} #{lastName},
+  p We have noticed that you often join parties without playing. 
+  p I would like to remind you that our policy states that you must not create or join a party if you do not intend to play... .
+  P You already have #{nbrWarnings} warnings; with three warnings, you will no longer be able to access our platform.
+  P Thank you for your understanding.
+  table.btn.btn-primary(role='presentation', border='0', cellpadding='0', cellspacing='0')
+    tbody
+      tr
+        td(align='left')
+          table(role='presentation', border='0', cellpadding='0', cellspacing='0')
+            tbody
+              tr
+                td
+                  //- a(href=`${url}`, target='_blank') Upload user photo
+  p - IDIR Walid Hakim, Kind of angry Admin 😕

@@ -33,7 +33,6 @@ dbPostgres.sync()
     console.error('Postgres Synchronization error  : ', err);
   });
 
-
 var app = require('../app')
 var debug = require('debug')
 var http = require('http')
@@ -61,14 +60,6 @@ socketHandler(io)
 server.listen(port)
 server.on('error', onError)
 server.on('listening', onListening)
-
-if (process.env.FORCE_ENV) {
-  process.env.ENV = process.env.FORCE_ENV.trim();
-  process.env.FRONT_APP_URL = process.env.FRONT_APP_URL_PROD.trim();
-}
-
-console.log("FRONT APP URL :", process.env.FRONT_APP_URL);
-
 
 function normalizePort(val) {
     var port = parseInt(val, 10)

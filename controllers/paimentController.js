@@ -10,8 +10,8 @@ exports.getCheckoutSession = async (req,res,next)=>{
         // 2) Create chckout session 
         const session = await stripe.checkout.sessions.create({
             payment_method_types : ['card'],
-            success_url : `${process.env.FRONT_APP_URL}/paiement-success`,
-            cancel_url : `${process.env.FRONT_APP_URL}/profile`,
+            success_url : `http://localhost:8080/paiement-success`,
+            cancel_url : `http://localhost:8080/profile`,
             customer_email : req.user.email,
 
             // what was sent in the request so that we can get it back in the last step of workflow regarding paiments (see diagram)

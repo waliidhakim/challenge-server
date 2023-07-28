@@ -1,61 +1,69 @@
-const express = require("express");
-const userController = require(`./../controllers/userController`);
-const authController = require(`./../controllers/authController`);
+const express = require('express')
+const userController = require(`./../controllers/userController`)
+const authController = require(`./../controllers/authController`)
 
-const router = express.Router();
+const router = express.Router()
 
-router.route("/signup").post(authController.signup);
-router.route("/login").post(authController.login);
+router.route('/signup').post(authController.signup)
+router.route('/login').post(authController.login)
 
-router.route("/forgotPassword").post(authController.forgotPassword);
-router.route("/resetPassword/:token").patch(authController.resetPassword);
-
-router
-  .route("/updateMyPassword")
-  .patch(authController.protect, authController.updatePassword);
-
-router.route("/logout").get(authController.logout);
+router.route('/forgotPassword').post(authController.forgotPassword)
+router.route('/resetPassword/:token').patch(authController.resetPassword)
 
 router
-  .route("/me")
-  .get(authController.protect, userController.getMe)
-  .patch(authController.protect, userController.updateMe)
-  .delete(authController.protect, userController.deleteMe)
-  .put(authController.protect, userController.updateMyStatus);
+    .route('/my-index/:gameId')
+    .get(authController.protect, userController.getUserIndex)
 
 router
-  .route("/joinGame/:id")
-  .patch(authController.protect, userController.joinGame);
+    .route('/updateMyPassword')
+    .patch(authController.protect, authController.updatePassword)
+
+router.route('/logout').get(authController.logout)
 
 router
-  .route("/")
-  .get(
-    authController.protect,
-    authController.restrictTo("admin"),
-    userController.getAll
-  )
-  .post(
-    authController.protect,
-    authController.restrictTo("admin"),
-    userController.createOne
-  );
+.route("/me")
+.get(authController.protect, userController.getMe)
+.patch(authController.protect, userController.updateMe)
+.delete(authController.protect, userController.deleteMe)
+.put(authController.protect, userController.updateMyStatus);
 
 router
-  .route("/:id")
-  .get(
-    authController.protect,
-    authController.restrictTo("admin"),
-    userController.getOne
-  )
-  .patch(
-    authController.protect,
-    authController.restrictTo("admin"),
-    userController.updateOne
-  )
-  .delete(
-    authController.protect,
-    authController.restrictTo("admin"),
-    userController.deleteOne
-  );
+    .route('/joingame/:gameId')
+    .patch(authController.protect, userController.joinGame)
 
-module.exports = router;
+    router
+    .route('/inactive/:id')
+    .patch(authController.protect, userController.inactivePlayer)
+
+router
+    .route('/')
+    .get(
+        authController.protect,
+        authController.restrictTo('admin'),
+        userController.getAll
+    )
+    .post(
+        authController.protect,
+        authController.restrictTo('admin'),
+        userController.createOne
+    )
+
+router
+    .route('/:id')
+    .get(
+        authController.protect,
+        authController.restrictTo('admin'),
+        userController.getOne
+    )
+    .patch(
+        authController.protect,
+        authController.restrictTo('admin'),
+        userController.updateOne
+    )
+    .delete(
+        authController.protect,
+        authController.restrictTo('admin'),
+        userController.deleteOne
+    )
+
+module.exports = router

@@ -75,6 +75,14 @@ let userSchema = new Schema({
         enum: ['base', 'premium'],
         default: 'base',
     },
+    warnings: {
+        type: Number,
+        default: 0,
+    },
+    banned: {
+        type: Boolean,
+        default: false,
+    }
 })
 
 userSchema.pre('save', async function (next) {
