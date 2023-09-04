@@ -10,8 +10,8 @@ exports.getCheckoutSession = async (req,res,next)=>{
         // 2) Create chckout session 
         const session = await stripe.checkout.sessions.create({
             payment_method_types : ['card'],
-            success_url : `http://localhost:8080/paiement-success`,
-            cancel_url : `http://localhost:8080/profile`,
+            success_url : `${req.protocol}://${req.get('host')}/paiement-success`,
+            cancel_url : `${req.protocol}://${req.get('host')}/profile`,
             customer_email : req.user.email,
 
             // what was sent in the request so that we can get it back in the last step of workflow regarding paiments (see diagram)
@@ -26,8 +26,8 @@ exports.getCheckoutSession = async (req,res,next)=>{
                         unit_amount : 5 * 100,
 
                         product_data  : {
-                            name : "Abonnement Premium",
-                            description : "Créez autant de parties que vous voulez !",
+                            name : "Premium account",
+                            description : "Create as many games as you want !",
                             images : [	'https://www.natours.dev/img/tours/tour-3-cover.jpg'],
                         },                      
                     },
