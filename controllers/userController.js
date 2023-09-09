@@ -37,19 +37,9 @@ const getOne = async (req, res, next) => {
 }
 
 const getAll = async (req, res, next) => {
+    console.log('----------getAll users endpoint------------');
     try {
-        //postgres test
-
-        // pool.query(postgresQuries.getUsers, (error, results)=>{
-        //     if(error){
-        //         throw error;
-        //     }
-        //     postgres = results.rows;
-        //     console.log("postgres user : ", results.rows);
-
-        // })
-
-        console.log('getAll users endpoint')
+    
         const users = await UserMg.find()
 
         res.status(200).json({
@@ -58,9 +48,6 @@ const getAll = async (req, res, next) => {
             data: {
                 users: users,
             },
-            // dataPostres : {
-            //     postgres : postgres
-            // }
         })
     } catch (error) {
         console.log(error)

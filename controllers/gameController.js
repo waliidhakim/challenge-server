@@ -23,7 +23,6 @@ getAll = async (req, res, next) => {
 getOne = async (req, res, next) => {
     const { id } = req.params
     const userId = req.user._id
-    console.log('🚀 ~ file: gameController.js:26 ~ getOne= ~ userId:', userId)
     console.log('get one game endpoint')
     try {
         const game = await GameMg.findById(id)
@@ -40,6 +39,7 @@ getOne = async (req, res, next) => {
         for (let i = 0; i < game.players.length; i++) {
             const player = await UserMg.findById(game.players[i])
             let hand
+            console.log('player : ', player)
             if (player._id.toString() === userId.toString()) {
                 hand = await HandMg.findOne({
                     player: player._id,

@@ -2,7 +2,7 @@ const {promisify} = require('util');
 const jwt = require('jsonwebtoken');
 const createError = require('http-errors');
 const crypto = require('crypto');
-const TokenBlacklist = require('../db/mongo/models/TokenBlackList');
+const TokenBlacklist = require('../../server/db/mongo/models/TokenBlackList');
 // const postgresQuries = require(`${__dirname}/../db/postGres/posgresQueries`);
 // const pool = require(`${__dirname}/../db/postGres/dbPostgres`);
 
@@ -34,6 +34,7 @@ const createSendToken = (user,statusCode,res)=>{
 
 exports.signup = async(req,res,next)=>{
 
+    console.log("signup endpoint accessed");
     try{
 
         if((await UserMg.findOne({ email: req.body.email }))  
@@ -42,7 +43,7 @@ exports.signup = async(req,res,next)=>{
                 return next(createError(409,`User already exists`));
             }
 
-        console.log("signup endpoint accessed");
+        // console.log("signup endpoint accessed");
         const newUser = await UserMg.create({
             firstName : req.body.firstName,
             lastName : req.body.lastName,
@@ -50,7 +51,7 @@ exports.signup = async(req,res,next)=>{
             password : req.body.password,
             passwordConfirm : req.body.passwordConfirm
         });
-        console.log("signup endpoint Part 1 ");
+        // console.log("signup endpoint Part 1 ");
         //postgres
         const newUserPg = await UserPg.create({
             firstname: req.body.firstName,
@@ -59,7 +60,7 @@ exports.signup = async(req,res,next)=>{
             password: newUser.password, // Vous devriez utiliser bcrypt pour hacher le mot de passe
             
         });
-        console.log("signup endpoint Part 2");
+        // console.log("signup endpoint Part 2");
         
         
         const url = 'httpp://www.google.com';
@@ -97,7 +98,7 @@ exports.signup = async(req,res,next)=>{
 exports.login = async(req,res,next)=>{
 
     try {
-        console.log("login endpoint");
+        // console.log("login endpoint");
         const {email,password} = req.body;
 
     
@@ -109,7 +110,7 @@ exports.login = async(req,res,next)=>{
         //2 check if user exists and password is correct
         const user = await UserMg.findOne({email : email }).select('+password');
         // console.log(await user.correctPassword("dd","dd"));
-        console.log("type of user : ",typeof user);
+        // console.log("type of user : ",typeof user);
 
         //await user.correctPassword(password,user.password);
 
@@ -163,7 +164,7 @@ exports.login = async(req,res,next)=>{
 
 exports.protect = async (req,res,next) =>{
     try {
-        console.log("protect middleware");
+        // console.log("protect middleware");
         let token;
         //1 getting the token a check if it exists (chheck in the headers)
         if(req.headers.authorization && req.headers.authorization.startsWith('Bearer')){
@@ -202,7 +203,7 @@ exports.protect = async (req,res,next) =>{
 
 exports.restrictTo = (...roles) =>{
 
-    console.log("restrictTo middleware");
+    // console.log("restrictTo middleware");
     return (req,res,next) =>{
 
         //console.log("restrict middleware", `roles : ${roles}`, `current user is : ${req.user}`);

@@ -12,8 +12,6 @@ module.exports = (io) => {
         socket.emit('connection', null)
 
         socket.on('playCard', async ({ gameId, playerId, cardId, color }) => {
-            console.log('playCard')
-            console.log(gameId, playerId, cardId)
             try {
                 const id = gameId
                 const userId = playerId
@@ -75,16 +73,16 @@ module.exports = (io) => {
                     game.currentColor = card.color
                 }
                 await game.save({ validateBeforeSave: false })
-                console.log('ta gra mere la pute', game)
 
                 const nextPlayer =
                     game.players[(game.turn + 1) % game.players.length]
 
                 if (card.type === 'skip') {
-                    await skipTurn(game._id)
+                    await skipTurn(game._id, player._id)
                 }
                 if (card.type === 'reverse') {
                     await reverseOrder(game._id)
+                    await endTurn(player._id, game._id)
                 }
                 if (card.type === 'draw2') {
                     await drawTwo(game._id, nextPlayer)
@@ -123,7 +121,6 @@ module.exports = (io) => {
                     message: 'Card played successfully',
                     card,
                 })
-                console.log('card played successfully')
             } catch (error) {
                 socket.emit('playCardResponse', {
                     success: false,
@@ -156,7 +153,6 @@ module.exports = (io) => {
                     success: true,
                     message: 'Card drawn successfully',
                 })
-
             } catch (error) {
                 socket.emit('drawCardResponse', {
                     success: false,
@@ -165,36 +161,65 @@ module.exports = (io) => {
             }
         })
 
-        socket.on('joinGame', async ({ gameId, playerId }) => {})
+        socket.on('joinGame', async ({ gameId, playerId }) => {
+            try {
+                const game = await GameMg.findById(gameId)
+                if (!game) {
+                    throw new Error('game not found')
+                }
+                if (game.status === 'started') {
+                    throw new Error('game already started')
+                }
+                if (game.status === 'ended') {
+                    throw new Error('game already ended')
+                }
+                if (game.players.includes(playerId)) {
+                    throw new Error('user already joined')
+                }
+                if (game.players.length >= 4) {
+                    throw new Error('game is full')
+                }
+                game.players.push(playerId)
+                await game.save()
+                socket.emit('joinGameResponse', {
+                    success: true,
+                    message: 'joined successfully',
+                    gameId: game._id,
+                })
+                socket.broadcast.emit('startGameResponse', {
+                    success: true,
+                    message: 'joined successfully',
+                })
+            } catch (error) {
+                throw new Error(error.message)
+            }
+        })
 
         socket.on('startGame', async ({ gameId, playerId }) => {
             const id = gameId
             const userId = playerId
 
-            const user = await UserMg.findById(userId)
-            if (!user) {
-                return next(createError(404, 'user not found'))
-            }
-            const game = await GameMg.findById(id).populate('players')
-            if (!game) {
-                return next(createError(404, 'game not found'))
-            }
-            if (game.players.length < 2) {
-                return next(createError(400, 'not enough players'))
-            }
-            if (game.owner.toString() !== userId.toString()) {
-                return next(
-                    createError(403, 'only the owner can start the game')
-                )
-            }
-            if (game.status === 'ended') {
-                return next(createError(400, 'game already ended'))
-            }
-            if (game.status === 'started') {
-                return next(createError(400, 'game already started'))
-            }
-
             try {
+                const user = await UserMg.findById(userId)
+                if (!user) {
+                    throw new Error('user not found')
+                }
+                const game = await GameMg.findById(id).populate('players')
+                if (!game) {
+                    throw new Error('game not found')
+                }
+                if (game.players.length < 2) {
+                    throw new Error('not enough players')
+                }
+                if (game.owner.toString() !== userId.toString()) {
+                    throw new Error('not the owner')
+                }
+                if (game.status === 'ended') {
+                    throw new Error('game already ended')
+                }
+                if (game.status === 'started') {
+                    throw new Error('game already started')
+                }
                 game.status = 'started'
                 game.turn = 0
                 game.direction = 'clockwise'
@@ -202,11 +227,6 @@ module.exports = (io) => {
 
                 for (let i = 0; i < game.players.length; i++) {
                     const player = await UserMg.findById(game.players[i])
-                    console.log(
-                        '🚀 ~ file: gameController.js:92 ~ startGame ~ player:',
-                        player
-                    )
-
                     const hand = await HandMg.create({
                         player: player._id,
                         cards: [],
@@ -217,18 +237,10 @@ module.exports = (io) => {
                         const randomIndex = Math.floor(
                             Math.random() * game.deck.length
                         )
-                        console.log(
-                            '🚀 ~ file: gameController.js:105 ~ startGame ~ randomIndex:',
-                            randomIndex
-                        )
                         const card = game.deck[randomIndex]
                         hand.cards.push(card)
                         game.deck.splice(randomIndex, 1)
                     }
-                    console.log(
-                        '🚀 ~ file: gameController.js:102 ~ startGame ~ hand:',
-                        hand
-                    )
                     await hand.save({ validateBeforeSave: false })
                     await player.save({ validateBeforeSave: false })
                 }
@@ -271,15 +283,29 @@ module.exports = (io) => {
             }
         })
 
+        socket.on('createGame', async () => {
+            console.log('creating game')
+            socket.broadcast.emit('createGameResponse', {
+                success: true,
+            })
+        })
+
         socket.on('disconnect', () => {
             console.log('Client disconnected')
         })
     })
 }
 
-async function skipTurn(gameId) {
+async function skipTurn(gameId, playerId) {
     const game = await GameMg.findById(gameId)
+    const hand = await HandMg.findOne({
+        player: playerId,
+        game: gameId,
+    }).populate('cards')
     game.turn = (game.turn + 2) % game.players.length
+    if (hand.length === 1) {
+        await endGame(playerId, gameId)
+    }
     await game.save()
 }
 
@@ -298,7 +324,6 @@ async function drawTwo(gameId, playerId) {
 }
 
 async function drawFour(gameId, playerId, color) {
-    console.log('🚀 ~ file: index.js:183 ~ drawFour ~ color:', color, gameId)
     for (let i = 0; i < 4; i++) {
         await drawCard(playerId, gameId)
     }
@@ -310,16 +335,9 @@ async function drawFour(gameId, playerId, color) {
 }
 
 async function changeColor(color, gameId) {
-    console.log('🚀 ~ file: index.js:190 ~ changeColor ~ gameId:', gameId)
-    console.log('🚀 ~ file: index.js:190 ~ changeColor ~ color:', color)
     const game = await GameMg.findById(gameId).populate('currentCard')
     game.currentColor.color = color
-    console.log(
-        '🚀 ~ file: index.js:195 ~ changeColor ~ currentCard:',
-        game.currentColor
-    )
     await game.save()
-    console.log('🚀 ~ file: index.js:197 ~ changeColor ~ game:', game)
     try {
     } catch (error) {
         throw new Error('cannot change color')
@@ -342,25 +360,26 @@ async function drawCard(playerId, gameId) {
             await shuffle(game._id)
         }
 
+        await hand.save()
         await player.save({ validateBeforeSave: false })
         await game.save()
-        await hand.save()
     } catch (error) {
         console.log(error.message)
     }
 }
 
 async function endTurn(playerId, gameId) {
+    console.log('ended-turn')
     const player = await UserMg.findById(playerId)
-    console.log('🚀 ~ file: index.js:134 ~ endTurn ~ player:', player)
     const game = await GameMg.findById(gameId)
     const hand = await HandMg.findOne({
         player: playerId,
         game: gameId,
     }).populate('cards')
 
+    console.log(hand.cards.length)
     // Check if the player has won the game
-    if (hand.cards.length === 0) {
+    if (hand.cards.length === 1) {
         endGame(playerId, gameId)
     } else {
         // Move to the next player
@@ -382,6 +401,7 @@ async function endGame(playerId, gameId) {
         })
     })
     await game.save()
+    return true
 }
 
 async function shuffle(gameId) {

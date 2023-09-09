@@ -3,15 +3,15 @@ const createError = require("http-errors");
 
 
 exports.getCheckoutSession = async (req,res,next)=>{
-    
+    console.log(`${process.env.CLIENT_APP}/paiement-success`)
     try {
         console.log("checkout session function");
 
         // 2) Create chckout session 
         const session = await stripe.checkout.sessions.create({
             payment_method_types : ['card'],
-            success_url : `${process.env.FRONT_APP_URL}/paiement-success`,
-            cancel_url : `${process.env.FRONT_APP_URL}/profile`,
+            success_url : `${process.env.CLIENT_APP}/paiement-success`,
+            cancel_url : `${process.env.CLIENT_APP}/profile`,
             customer_email : req.user.email,
 
             // what was sent in the request so that we can get it back in the last step of workflow regarding paiments (see diagram)
@@ -26,8 +26,8 @@ exports.getCheckoutSession = async (req,res,next)=>{
                         unit_amount : 5 * 100,
 
                         product_data  : {
-                            name : "Premium account",
-                            description : "Create as many games as you want !",
+                            name : "Abonnement Premium",
+                            description : "Créez autant de parties que vous voulez !",
                             images : [	'https://www.natours.dev/img/tours/tour-3-cover.jpg'],
                         },                      
                     },
