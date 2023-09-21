@@ -12,6 +12,7 @@ const GameMg = require('../db/mongo/models/gameModel')
 const GamePg = require('../db/postGres/models/gamePostgresModel')
 const CardMg = require('../db/mongo/models/cardModel')
 const CardPg = require('../db/postGres/models/cardPostgresModel')
+const { ObjectId } = require('mongodb')
 
 const getOne = async (req, res, next) => {
     const { id } = req.params
@@ -37,19 +38,8 @@ const getOne = async (req, res, next) => {
 }
 
 const getAll = async (req, res, next) => {
+    console.log('----------getAll users endpoint------------')
     try {
-        //postgres test
-
-        // pool.query(postgresQuries.getUsers, (error, results)=>{
-        //     if(error){
-        //         throw error;
-        //     }
-        //     postgres = results.rows;
-        //     console.log("postgres user : ", results.rows);
-
-        // })
-
-        console.log('getAll users endpoint')
         const users = await UserMg.find()
 
         res.status(200).json({
@@ -58,9 +48,6 @@ const getAll = async (req, res, next) => {
             data: {
                 users: users,
             },
-            // dataPostres : {
-            //     postgres : postgres
-            // }
         })
     } catch (error) {
         console.log(error)
@@ -287,75 +274,74 @@ const updateMe = async (req, res, next) => {
         }
         await user.save({ validateBeforeSave: false })
 
-    res.status(200).json({
-      status: "success",
-      data: {
-        user: user,
-      },
-    });
-  } catch (error) {
-    console.log(error);
-    return next(createError(500));
-  }
-};
-
+        res.status(200).json({
+            status: 'success',
+            data: {
+                user: user,
+            },
+        })
+    } catch (error) {
+        console.log(error)
+        return next(createError(500))
+    }
+}
 
 const updateMyStatus = async (req, res, next) => {
-  console.log("updateStatus endpoint");
-  const userId = req.user._id;
-  const { status } = req.body;
-  try {
-    const user = await UserMg.findById(userId);
-    if (!user) {
-      return next(createError(404));
-    }
+    console.log('updateStatus endpoint')
+    const userId = req.user._id
+    const { status } = req.body
+    try {
+        const user = await UserMg.findById(userId)
+        if (!user) {
+            return next(createError(404))
+        }
 
-    if (status) {
-      user.status = status;
-    }
-    
-    await user.save( { validateBeforeSave: false });
+        if (status) {
+            user.status = status
+        }
 
-    res.status(200).json({
-      status: "success",
-      data: {
-        user: user,
-      },
-    });
-  } catch (error) {
-    console.log(error);
-    return next(createError(500, 'error update me'));
-  }
-};
+        await user.save({ validateBeforeSave: false })
+
+        res.status(200).json({
+            status: 'success',
+            data: {
+                user: user,
+            },
+        })
+    } catch (error) {
+        console.log(error)
+        return next(createError(500, 'error update me'))
+    }
+}
 
 const joinGame = async (req, res, next) => {
     const { gameId } = req.params
     const userId = req.user._id
     // try {
-        const game = await GameMg.findById(gameId)
-        if (!game) {
-            return next(createError(404), 'game not found')
-        }
-        if (game.status === 'started') {
-            return next(createError(400, 'game already started'))
-        }
-        if (game.status === 'ended') {
-            return next(createError(400, 'game already ended'))
-        }
-        if (game.players.includes(userId)) {
-            return next(createError(400, 'user already joined'))
-        }
-        if (game.players.length >= 4) {
-            return next(createError(400, 'game is full'))
-        }
-        game.players.push(userId)
-        await game.save()
-        res.status(200).json({
-            status: 'success',
-            data: {
-                game: game,
-            },
-        })
+    const game = await GameMg.findById(gameId)
+    if (!game) {
+        return next(createError(404), 'game not found')
+    }
+    if (game.status === 'started') {
+        return next(createError(400, 'game already started'))
+    }
+    if (game.status === 'ended') {
+        return next(createError(400, 'game already ended'))
+    }
+    if (game.players.includes(userId)) {
+        return next(createError(400, 'user already joined'))
+    }
+    if (game.players.length >= 4) {
+        return next(createError(400, 'game is full'))
+    }
+    game.players.push(userId)
+    await game.save()
+    res.status(200).json({
+        status: 'success',
+        data: {
+            game: game,
+        },
+    })
     // } catch (error) {
     //     console.log(error)
     //     return next(createError(500))
@@ -366,37 +352,37 @@ const inactivePlayer = async (req, res, next) => {
     const { gameId } = req.params
     const userId = req.user._id
     try {
-      const user = await UserMg.findById(userId)
-      if (!user) {
-        return next(createError(404))
-      }
+        const user = await UserMg.findById(userId)
+        if (!user) {
+            return next(createError(404))
+        }
 
-      const game = await GameMg.findById(gameId)
-      if (!game) {
-        return next(createError(404))
-      }
-      if (game.status !== 'started') {
-        return next(createError(400, 'game not started'))
-      }
-      if (!game.players.includes(userId)) {
-        return next(createError(400, 'user not in game'))
-      }
-      if (game.players[game.turn].toString() !== userId.toString()) {
-        return next(createError(400, 'not your turn'))
-      }
-      game.turn = (game.turn + 1) % game.players.length
-      await game.save()
-      res.status(200).json({
-        status: 'success',
-        data: {
-          game: game,
-        },
-      })
+        const game = await GameMg.findById(gameId)
+        if (!game) {
+            return next(createError(404))
+        }
+        if (game.status !== 'started') {
+            return next(createError(400, 'game not started'))
+        }
+        if (!game.players.includes(userId)) {
+            return next(createError(400, 'user not in game'))
+        }
+        if (game.players[game.turn].toString() !== userId.toString()) {
+            return next(createError(400, 'not your turn'))
+        }
+        game.turn = (game.turn + 1) % game.players.length
+        await game.save()
+        res.status(200).json({
+            status: 'success',
+            data: {
+                game: game,
+            },
+        })
     } catch (error) {
-      console.log(error)
-      return next(createError(500))
+        console.log(error)
+        return next(createError(500))
     }
-  }
+}
 
 const getUserIndex = async (req, res, next) => {
     const { gameId } = req.params
@@ -418,6 +404,190 @@ const getUserIndex = async (req, res, next) => {
             status: 'success',
             data: {
                 index: index,
+            },
+        })
+    } catch (error) {
+        console.log(error)
+        return next(createError(500))
+    }
+}
+
+const getMostUsedCard = async (req, res, next) => {
+    const { id } = req.user
+    try {
+        const user = await UserMg.findById(id)
+        if (!user) {
+            return next(createError(404, 'user not found'))
+        }
+        const aggregateOptions = [
+            {
+                $unwind: '$cardsPlayed',
+            },
+            {
+                $group: {
+                    _id: {
+                        userId: id,
+                        cardId: '$cardsPlayed',
+                    },
+                    count: {
+                        $sum: 1,
+                    },
+                },
+            },
+            {
+                $sort: {
+                    count: -1,
+                },
+            },
+            {
+                $group: {
+                    _id: id,
+                    mostPlayedCard: {
+                        $first: '$_id.cardId',
+                    },
+                    count: {
+                        $first: '$count',
+                    },
+                },
+            },
+            {
+                $lookup: {
+                    from: 'cards', // Replace with your actual Card collection name
+                    localField: 'mostPlayedCard',
+                    foreignField: '_id',
+                    as: 'mostPlayedCardDetails',
+                },
+            },
+            {
+                $unwind: '$mostPlayedCardDetails',
+            },
+        ]
+        const card = await UserMg.aggregate(aggregateOptions)
+        res.status(200).json({
+            status: 'success',
+            data: {
+                card: card,
+            },
+        })
+    } catch (error) {
+        console.log(error)
+        return next(createError(500))
+    }
+}
+
+const getLeaderBoard = async (req, res, next) => {
+    try {
+        const aggregateOptions = [
+            {
+                $group:
+                    /**
+                     * _id: The id of the group.
+                     * fieldN: The first field name.
+                     */
+                    {
+                        _id: '$winner',
+                        totalWins: {
+                            $sum: 1,
+                        },
+                    },
+            },
+            {
+                $sort:
+                    /**
+                     * Provide any number of field/order pairs.
+                     */
+                    {
+                        totalWins: -1,
+                    },
+            },
+            {
+                $limit:
+                    /**
+                     * Provide the number of documents to limit.
+                     */
+                    10,
+            },
+            {
+                $lookup:
+                    /**
+                     * from: The target collection.
+                     * localField: The local join field.
+                     * foreignField: The target join field.
+                     * as: The name for the results.
+                     * pipeline: Optional pipeline to run on the foreign collection.
+                     * let: Optional variables to use in the pipeline field stages.
+                     */
+                    {
+                        from: 'users',
+                        localField: '_id',
+                        foreignField: '_id',
+                        as: 'user',
+                    },
+            },
+            {
+                $unwind:
+                    /**
+                     * path: Path to the array field.
+                     * includeArrayIndex: Optional name for index.
+                     * preserveNullAndEmptyArrays: Optional
+                     *   toggle to unwind null and empty values.
+                     */
+                    {
+                        path: '$user',
+                    },
+            },
+        ]
+        const users = await GameMg.aggregate(aggregateOptions)
+        res.status(200).json({
+            status: 'success',
+            data: {
+                users: users,
+            },
+        })
+    } catch (error) {
+        console.log(error)
+        return next(createError(500))
+    }
+}
+
+const getPlaytime = async (req, res, next) => {
+    try {
+        const aggregateOptions = [
+            {
+                $match:
+                    /**
+                     * query: The query in MQL.
+                     */
+                    {
+                        players: req.user._id,
+                    },
+            },
+            {
+                $addFields: {
+                    duration: {
+                        $subtract: ['$updatedAt', '$createdAt'],
+                    },
+                },
+            },
+            {
+                $group:
+                    /**
+                     * _id: The id of the group.
+                     * fieldN: The first field name.
+                     */
+                    {
+                        _id: null,
+                        playTime: {
+                            $sum: '$duration',
+                        },
+                    },
+            },
+        ]
+        const [playtime] = await GameMg.aggregate(aggregateOptions)
+        res.status(200).json({
+            status: 'success',
+            data: {
+                playtime: playtime,
             },
         })
     } catch (error) {
@@ -473,7 +643,10 @@ module.exports = {
     deleteMe,
     updateMe,
     joinGame,
-  updateMyStatus,
+    updateMyStatus,
     getUserIndex,
     inactivePlayer,
+    getMostUsedCard,
+    getLeaderBoard,
+    getPlaytime
 }

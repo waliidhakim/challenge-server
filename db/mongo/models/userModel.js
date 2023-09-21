@@ -82,7 +82,16 @@ let userSchema = new Schema({
     banned: {
         type: Boolean,
         default: false,
-    }
+    },
+    cardsPlayed: [{
+        type: Schema.Types.ObjectId,
+        ref: 'Card',
+    }],
+    consecutiveWins: {
+        type: Number,
+        default: 0,
+    },
+
 })
 
 userSchema.pre('save', async function (next) {

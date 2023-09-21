@@ -23,7 +23,6 @@ getAll = async (req, res, next) => {
 getOne = async (req, res, next) => {
     const { id } = req.params
     const userId = req.user._id
-    console.log('🚀 ~ file: gameController.js:26 ~ getOne= ~ userId:', userId)
     console.log('get one game endpoint')
     try {
         const game = await GameMg.findById(id)
@@ -233,7 +232,7 @@ const getMyGame = async (req, res) => {
             })
         } else {
             res.json({
-                message: 'Aucune partie commencée trouvée pour cet utilisateur',
+                message: 'You are not in any game',
             })
         }
     } catch (err) {
