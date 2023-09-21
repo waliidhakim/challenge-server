@@ -39,6 +39,7 @@ getOne = async (req, res, next) => {
         for (let i = 0; i < game.players.length; i++) {
             const player = await UserMg.findById(game.players[i])
             let hand
+            console.log('player : ', player)
             if (player._id.toString() === userId.toString()) {
                 hand = await HandMg.findOne({
                     player: player._id,

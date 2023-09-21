@@ -38,8 +38,9 @@ const getOne = async (req, res, next) => {
 }
 
 const getAll = async (req, res, next) => {
-    console.log('----------getAll users endpoint------------')
+    console.log('----------getAll users endpoint------------');
     try {
+    
         const users = await UserMg.find()
 
         res.status(200).json({

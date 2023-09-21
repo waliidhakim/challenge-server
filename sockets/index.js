@@ -379,6 +379,7 @@ async function endTurn(playerId, gameId) {
         game: gameId,
     }).populate('cards')
 
+    console.log(hand.cards.length)
     // Check if the player has won the game
     if (hand.cards.length === 1) {
         endGame(playerId, gameId)
