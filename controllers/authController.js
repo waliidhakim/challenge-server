@@ -251,7 +251,8 @@ exports.forgotPassword = async (req,res,next)=>{
             //     message
             // })
 
-            const resetURL = `${req.protocol}://${req.get('host')}/api/v1/users/resetPassword/${resetToken}`;
+            //const resetURL = `${req.protocol}://${req.get('host')}/api/v1/users/resetPassword/${resetToken}`;
+            const resetURL = `${process.env.CLIENT_APP}/resetPassword/${resetToken}`;
             await new Email(user,resetURL).sendPasswordReset();
         
             res.status(200).json({
