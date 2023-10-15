@@ -584,7 +584,12 @@ const getPlaytime = async (req, res, next) => {
                     },
             },
         ]
-        const [playtime] = await GameMg.aggregate(aggregateOptions)
+        let [playtime] = await GameMg.aggregate(aggregateOptions)
+        if (!playtime) {
+            playtime = {
+                playTime: 0,
+            }
+        }   
         res.status(200).json({
             status: 'success',
             data: {
